@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Handwrite — 文字转手写体</title>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Ma+Shan+Zheng&family=Liu+Jian+Mao+Cao&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--text2:#8b949e;--accent:#58a6ff;--accent2:#3fb950;--hover:#1f2937;--input:#0d1117}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.app{max-width:900px;margin:0 auto;padding:20px}
+h1{font-size:24px;color:#fff;margin-bottom:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+h1 .badge{font-size:12px;color:var(--accent2);background:rgba(63,185,80,.15);padding:2px 8px;border-radius:4px}
+.subtitle{font-size:13px;color:var(--text2);margin-bottom:20px}
+.privacy-badge{display:inline-flex;align-items:center;gap:4px;background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.3);border-radius:10px;padding:2px 8px;font-size:10px;color:var(--accent2)}
+.main{display:flex;gap:20px;flex-wrap:wrap}
+.left{flex:1;min-width:300px}
+.right{width:400px;display:flex;flex-direction:column}
+.section{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:12px}
+.section h3{font-size:14px;color:#fff;margin-bottom:12px}
+textarea{width:100%;padding:10px;background:var(--input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;resize:vertical;outline:none;min-height:120px;font-family:inherit}
+textarea:focus{border-color:var(--accent)}
+.row{display:flex;gap:12px;align-items:center;margin-bottom:8px;flex-wrap:wrap}
+.row label{font-size:12px;color:var(--text2);min-width:70px}
+.row input[type=range]{flex:1;accent-color:var(--accent)}
+.row input[type=number]{width:60px;padding:4px 6px;background:var(--input);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px}
+.row input[type=color]{width:36px;height:28px;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:none;padding:0}
+.row select{padding:5px 8px;background:var(--input);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px}
+.btn{padding:8px 16px;border:1px solid var(--border);border-radius:6px;background:var(--card);color:var(--text);cursor:pointer;font-size:13px;transition:all .15s}
+.btn:hover{background:var(--hover);border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.primary:hover{background:#4090e0}
+.btn-group{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.paper{position:relative;overflow:hidden;border-radius:4px;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+.paper-white{background:#fff}
+.paper-cream{background:#fdf6e3}
+.paper-yellow{background:#fffde7}
+.paper-grid{background:#fff;background-image:linear-gradient(rgba(0,0,0,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.05) 1px,transparent 1px);background-size:20px 20px}
+.paper-lined{background:#fff}
+.paper-content{padding:30px 40px;position:relative;z-index:1}
+.paper-lined .paper-content{background-image:repeating-linear-gradient(transparent,transparent 31px,#e0e0e0 31px,#e0e0e0 32px);background-position:0 30px;line-height:32px}
+.pen-black{color:#1a1a1a}
+.pen-blue{color:#1565c0}
+.pen-red{color:#c62828}
+.pen-green{color:#2e7d32}
+.pen-purple{color:#6a1b9a}
+.font-caveat{font-family:'Caveat',cursive}
+.font-mashanzheng{font-family:'Ma Shan Zheng',cursive}
+.font-liujianmaocao{font-family:'Liu Jian Mao Cao',cursive}
+@media(max-width:768px){.main{flex-direction:column}.right{width:100%}}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>✍️ Handwrite <span class="badge">离线</span> <span class="privacy-badge">🔒 文字不离开浏览器</span></h1>
+<p class="subtitle">将文字转为手写体图片 — 多种纸张/笔色/字体，导出 PNG</p>
+
+<div class="main">
+<div class="left">
+<div class="section">
+<h3>📝 输入文字</h3>
+<textarea id="textInput" placeholder="在这里输入你想转为手写体的文字...&#10;&#10;支持多行，每行会显示在对应的横线上。">今天天气真好，适合出去散步。
+我正在学习 JavaScript，
+希望有一天能做出很棒的产品。
+
+—— Ren Echo</textarea>
+</div>
+
+<div class="section">
+<h3>⚙️ 设置</h3>
+<div class="row"><label>字体</label>
+<select id="fontSelect" onchange="render()">
+<option value="font-caveat">Caveat (英文手写)</option>
+<option value="font-mashanzheng" selected>马山正 (中文楷书)</option>
+<option value="font-liujianmaocao">刘建毛草 (中文草书)</option>
+</select></div>
+<div class="row"><label>字号</label><input type="range" id="fontSize" min="14" max="36" value="22" oninput="render()"><span id="fontSizeVal" style="font-size:11px;color:var(--text2)">22px</span></div>
+<div class="row"><label>行高</label><input type="range" id="lineHeight" min="24" max="60" value="32" oninput="render()"><span id="lineHeightVal" style="font-size:11px;color:var(--text2)">32px</span></div>
+<div class="row"><label>笔色</label>
+<select id="penColor" onchange="render()">
+<option value="pen-black">黑色</option>
+<option value="pen-blue" selected>蓝色</option>
+<option value="pen-red">红色</option>
+<option value="pen-green">绿色</option>
+<option value="pen-purple">紫色</option>
+</select></div>
+<div class="row"><label>纸张</label>
+<select id="paperStyle" onchange="render()">
+<option value="paper-white">白纸</option>
+<option value="paper-cream" selected>米黄纸</option>
+<option value="paper-yellow">黄色纸</option>
+<option value="paper-lined">横线纸</option>
+<option value="paper-grid">方格纸</option>
+</select></div>
+<div class="row"><label>纸张宽度</label><input type="range" id="paperWidth" min="300" max="800" value="500" oninput="render()"><span id="paperWidthVal" style="font-size:11px;color:var(--text2)">500px</span></div>
+</div>
+</div>
+
+<div class="right">
+<div class="section" style="width:100%">
+<h3>预览</h3>
+<div id="paperContainer"></div>
+<div class="btn-group">
+<button class="btn primary" onclick="exportPng()">📥 导出 PNG</button>
+<button class="btn" onclick="copyImage()">📋 复制图片</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+function render() {
+  var text = document.getElementById('textInput').value;
+  var font = document.getElementById('fontSelect').value;
+  var size = document.getElementById('fontSize').value;
+  var lh = document.getElementById('lineHeight').value;
+  var pen = document.getElementById('penColor').value;
+  var paper = document.getElementById('paperStyle').value;
+  var width = document.getElementById('paperWidth').value;
+  
+  document.getElementById('fontSizeVal').textContent = size + 'px';
+  document.getElementById('lineHeightVal').textContent = lh + 'px';
+  document.getElementById('paperWidthVal').textContent = width + 'px';
+  
+  var isLined = paper === 'paper-lined';
+  var lineHeight = parseInt(lh);
+  
+  var html = '<div class="paper ' + paper + '" id="paper" style="width:' + width + 'px">';
+  html += '<div class="paper-content ' + font + ' ' + pen + '" ';
+  html += 'style="font-size:' + size + 'px;line-height:' + lineHeight + 'px;min-height:200px">';
+  
+  if (isLined) {
+    html += '<div style="background-image:repeating-linear-gradient(transparent,transparent ' + (lineHeight-1) + 'px,#e0e0e0 ' + (lineHeight-1) + 'px,#e0e0e0 ' + lineHeight + 'px);background-position:0 0">';
+  }
+  
+  // Escape HTML and preserve line breaks
+  var lines = text.split('\n');
+  html += lines.map(function(line) {
+    return line.replace(/</g, '&lt;').replace(/>/g, '&gt;') || '&nbsp;';
+  }).join('<br>');
+  
+  if (isLined) html += '</div>';
+  html += '</div></div>';
+  
+  document.getElementById('paperContainer').innerHTML = html;
+}
+
+function exportPng() {
+  var paper = document.getElementById('paper');
+  if (!paper) return;
+  
+  var canvas = document.createElement('canvas');
+  var scale = 2;
+  canvas.width = paper.offsetWidth * scale;
+  canvas.height = paper.offsetHeight * scale;
+  var ctx = canvas.getContext('2d');
+  ctx.scale(scale, scale);
+  
+  // Use SVG foreignObject
+  var styles = document.querySelector('style').textContent;
+  var data = new XMLSerializer().serializeToString(paper);
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + paper.offsetWidth + '" height="' + paper.offsetHeight + '">' +
+    '<foreignObject width="100%" height="100%">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml">' +
+    '<style>' + styles + '</style>' +
+    data +
+    '</div></foreignObject></svg>';
+  
+  var img = new Image();
+  var blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  
+  img.onload = function() {
+    ctx.drawImage(img, 0, 0, paper.offsetWidth, paper.offsetHeight);
+    URL.revokeObjectURL(url);
+    var link = document.createElement('a');
+    link.download = 'handwrite-' + Date.now() + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+  img.onerror = function() {
+    alert('导出失败。请尝试截图工具（Win+Shift+S）作为替代。');
+  };
+  img.src = url;
+}
+
+function copyImage() {
+  var paper = document.getElementById('paper');
+  if (!paper) return;
+  var canvas = document.createElement('canvas');
+  canvas.width = paper.offsetWidth * 2;
+  canvas.height = paper.offsetHeight * 2;
+  var ctx = canvas.getContext('2d');
+  ctx.scale(2, 2);
+  
+  var styles = document.querySelector('style').textContent;
+  var data = new XMLSerializer().serializeToString(paper);
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + paper.offsetWidth + '" height="' + paper.offsetHeight + '">' +
+    '<foreignObject width="100%" height="100%">' +
+    '<div xmlns="http://www.w3.org/1999/xhtml">' +
+    '<style>' + styles + '</style>' +
+    data +
+    '</div></foreignObject></svg>';
+  
+  var img = new Image();
+  var blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  
+  img.onload = function() {
+    ctx.drawImage(img, 0, 0, paper.offsetWidth, paper.offsetHeight);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(function(b) {
+      navigator.clipboard.write([new ClipboardItem({'image/png': b})]);
+    });
+  };
+  img.src = url;
+}
+
+// Init
+render();
+</script>
+</body>
+</html>
