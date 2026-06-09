@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Handwrite — 文字转手写体</title>
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Ma+Shan+Zheng&family=Liu+Jian+Mao+Cao&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Dancing+Script:wght@400;700&family=Pacifico&family=Satisfy&family=Great+Vibes&family=Sacramento&family=Indie+Flower&family=Shadows+Into+Light&family=Permanent+Marker&family=Kalam:wght@300;400;700&family=Patrick+Hand&family=Ma+Shan+Zheng&family=Liu+Jian+Mao+Cao&family=ZCOOL+XiaoWei&family=ZCOOL+QingKe+HuangYou&family=ZCOOL+KuaiLe&family=Long+Cang&family=Zen+Antique+Soft&family=Klee+One:wght@400;600&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{--bg:#0d1117;--card:#161b22;--border:#30363d;--text:#c9d1d9;--text2:#8b949e;--accent:#58a6ff;--accent2:#3fb950;--hover:#1f2937;--input:#0d1117}
@@ -46,8 +46,25 @@ textarea:focus{border-color:var(--accent)}
 .pen-green{color:#2e7d32}
 .pen-purple{color:#6a1b9a}
 .font-caveat{font-family:'Caveat',cursive}
+.font-dancingscript{font-family:'Dancing Script',cursive}
+.font-pacifico{font-family:'Pacifico',cursive}
+.font-satisfy{font-family:'Satisfy',cursive}
+.font-greatvibes{font-family:'Great Vibes',cursive}
+.font-sacramento{font-family:'Sacramento',cursive}
+.font-indieflower{font-family:'Indie Flower',cursive}
+.font-shadowsintolight{font-family:'Shadows Into Light',cursive}
+.font-permanentmarker{font-family:'Permanent Marker',cursive}
+.font-kalam{font-family:'Kalam',cursive}
+.font-patrickhand{font-family:'Patrick Hand',cursive}
 .font-mashanzheng{font-family:'Ma Shan Zheng',cursive}
 .font-liujianmaocao{font-family:'Liu Jian Mao Cao',cursive}
+.font-zcoolxiaowei{font-family:'ZCOOL XiaoWei',serif}
+.font-zcoolqingkehuangyou{font-family:'ZCOOL QingKe HuangYou',cursive}
+.font-zcoolkuaile{font-family:'ZCOOL KuaiLe',cursive}
+.font-longcang{font-family:'Long Cang',cursive}
+.font-zenantiquesoft{font-family:'Zen Antique Soft',serif}
+.font-kleeone{font-family:'Klee One',cursive}
+.font-upload{font-family:CustomFont,cursive}
 @media(max-width:768px){.main{flex-direction:column}.right{width:100%}}
 </style>
 </head>
@@ -71,10 +88,34 @@ textarea:focus{border-color:var(--accent)}
 <h3>⚙️ 设置</h3>
 <div class="row"><label>字体</label>
 <select id="fontSelect" onchange="render()">
-<option value="font-caveat">Caveat (英文手写)</option>
-<option value="font-mashanzheng" selected>马山正 (中文楷书)</option>
-<option value="font-liujianmaocao">刘建毛草 (中文草书)</option>
+<optgroup label="English">
+<option value="font-caveat">Caveat</option>
+<option value="font-dancingscript">Dancing Script</option>
+<option value="font-pacifico">Pacifico</option>
+<option value="font-satisfy">Satisfy</option>
+<option value="font-greatvibes">Great Vibes</option>
+<option value="font-sacramento">Sacramento</option>
+<option value="font-indieflower">Indie Flower</option>
+<option value="font-shadowsintolight">Shadows Into Light</option>
+<option value="font-permanentmarker">Permanent Marker</option>
+<option value="font-kalam">Kalam</option>
+<option value="font-patrickhand">Patrick Hand</option>
+</optgroup>
+<optgroup label="中文">
+<option value="font-mashanzheng" selected>马山正 (楷书)</option>
+<option value="font-liujianmaocao">刘建毛草 (草书)</option>
+<option value="font-zcoolxiaowei">站酷小薇</option>
+<option value="font-zcoolqingkehuangyou">站酷庆科黄油</option>
+<option value="font-zcoolkuaile">站酷快乐</option>
+<option value="font-longcang">龙藏</option>
+</optgroup>
+<optgroup label="日本語">
+<option value="font-zenantiquesoft">Zen Antique Soft</option>
+<option value="font-kleeone">Klee One</option>
+</optgroup>
 </select></div>
+<div class="row"><label>上传字体</label>
+<input type="file" id="fontUpload" accept=".ttf,.otf,.woff,.woff2" style="font-size:12px;color:var(--text2);max-width:220px"></div>
 <div class="row"><label>字号</label><input type="range" id="fontSize" min="14" max="36" value="22" oninput="render()"><span id="fontSizeVal" style="font-size:11px;color:var(--text2)">22px</span></div>
 <div class="row"><label>行高</label><input type="range" id="lineHeight" min="24" max="60" value="32" oninput="render()"><span id="lineHeightVal" style="font-size:11px;color:var(--text2)">32px</span></div>
 <div class="row"><label>笔色</label>
@@ -217,6 +258,46 @@ function copyImage() {
   };
   img.src = url;
 }
+
+// Custom font upload via FontFace API
+window._uploadedFontName = 'CustomFont';
+document.getElementById('fontUpload').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var fontName = file.name.replace(/\.(ttf|otf|woff|woff2)$/i, '').replace(/[^a-zA-Z0-9\u4e00-\u9fff_-]/g, '');
+    if (!fontName) fontName = 'CustomFont';
+    var face = new FontFace(fontName, ev.target.result);
+    face.load().then(function(loaded) {
+      document.fonts.add(loaded);
+      window._uploadedFontName = fontName;
+      // Update CSS custom property for the upload font class
+      var styleEl = document.createElement('style');
+      styleEl.textContent = ".font-upload{font-family:'" + fontName + "',cursive}";
+      document.head.appendChild(styleEl);
+      // Add option to select if not already present
+      var sel = document.getElementById('fontSelect');
+      var existing = sel.querySelector('option[value="font-upload"]');
+      if (!existing) {
+        var optgroup = document.createElement('optgroup');
+        optgroup.label = '自定义';
+        var opt = document.createElement('option');
+        opt.value = 'font-upload';
+        opt.textContent = fontName;
+        optgroup.appendChild(opt);
+        sel.appendChild(optgroup);
+      } else {
+        existing.textContent = fontName;
+      }
+      sel.value = 'font-upload';
+      render();
+    }).catch(function(err) {
+      alert('字体加载失败: ' + err.message);
+    });
+  };
+  reader.readAsArrayBuffer(file);
+});
 
 // Init
 render();
